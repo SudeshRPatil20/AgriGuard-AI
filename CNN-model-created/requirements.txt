@@ -1,0 +1,31 @@
+# Jupyter Kernel
+ipykernel
+
+# Environment Variable Management
+python-dotenv
+
+# Web App / UI
+streamlit
+
+# Deep Learning Libraries
+tensorflow
+keras
+
+# ML Tools
+scikit-learn
+
+# Data Manipulation
+pandas
+numpy
+
+# Visualization (Optional but useful)
+matplotlib
+seaborn
+
+# Image Processing (If working with image data)
+opencv-python
+Pillow
+
+gradio
+torch
+torchvision
