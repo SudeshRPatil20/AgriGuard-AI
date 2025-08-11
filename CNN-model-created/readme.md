@@ -46,6 +46,14 @@ Upload a leaf image.
 The model classifies it into one of the plant disease categories.
 
 Displays prediction label and confidence score.
+https://github.com/SudeshRPatil20/Plant-Deseasis-Detection/blob/main/CNN-model-created/images/Screenshot%20(710).png
+#### Images
+<p align="center">
+  <img src="images/Screenshot%20(710).png" width="25%">
+  <img src="images/Screenshot%20(711).png" width="25%">
+</p>
+
+
 
 ##### 🗂️ Project Structure
 bash
