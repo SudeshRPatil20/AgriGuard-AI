@@ -17,3 +17,5 @@ Pillow
 gradio
 torch
 torchvision
+catboost
+shutil
