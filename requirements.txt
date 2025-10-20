@@ -17,5 +17,11 @@ Pillow
 gradio
 torch
 torchvision
-catboost
-shutil
+# catboost
+# shutil
+dill
+langchain
+langchain-community
+faiss-cpu   
+pypdf      
+ollama 

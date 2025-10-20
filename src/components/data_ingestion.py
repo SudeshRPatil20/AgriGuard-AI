@@ -8,6 +8,8 @@ from dataclasses import dataclass
 import shutil
 
 from sklearn.model_selection import train_test_split
+from src.components.data_transformation import DataTransformation
+from src.components.data_transformation import DataTransformationConfig
 
 @dataclass
 class DataIngesionConfig:
@@ -24,6 +26,16 @@ class DataIngesion:
         logging.info("Data Ingestion Method and Component")
         try:
             df=pd.read_csv("Ferlilizer_Data\Fertilizer Prediction.csv")
+            df.columns = df.columns.str.strip()
+            df.columns = df.columns.str.replace(" ", "_")
+            df["soil_health_score"] = (
+                df['Temparature']*0.2 +
+                df['Humidity']*0.1 +
+                df['Moisture']*0.2 +
+                df['Nitrogen']*0.2 +
+                df['Potassium']*0.15 +
+                df['Phosphorous']*0.15
+                )
             logging.info("Data Readed Sucessfully")
             os.makedirs(os.path.dirname(self.data_ingestion_config.train_data_path), exist_ok=True)
             
@@ -65,5 +77,10 @@ class DataIngesion:
     
 if __name__=="__main__":
     obj=DataIngesion()
-    obj.initiate_data_ingestion()
-    obj.rag_ingestion_initialize()
+    train_df, test_df=obj.initiate_data_ingestion()
+    docs_rag=obj.rag_ingestion_initialize()
+    
+    
+    data_transformation=DataTransformation()
+    data_transformation.initate_data_transformation(train_df, test_df)
+    data_transformation.initate_rag_transformation(docs_rag)
