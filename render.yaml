@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: disease-api
+    env: python
+    workingDirectory: CNN-model-created
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app:app --host 0.0.0.0 --port 10000
+    envVars:
+      - key: GENAI_API_KEY
+        sync: false
+
+  - type: web
+    name: fertilizer-api
+    env: python
+    workingDirectory: .
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port 10000
