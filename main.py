@@ -57,5 +57,13 @@ def rag_info():
         return {"error": str(e)}
 
 if __name__ == "__main__":
+    import os
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8002, reload=True)
+    port = int(os.environ.get("PORT", 8000))  # Render provides PORT
+    uvicorn.run(app, host="0.0.0.0", port=port)
+
+
+
+    
+    # import uvicorn
+    # uvicorn.run(app, host="0.0.0.0", port=8002, reload=True)
