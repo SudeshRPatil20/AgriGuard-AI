@@ -10,9 +10,10 @@ from deep_translator import GoogleTranslator
 load_dotenv()
 genai.configure(api_key=os.getenv("GENAI_API_KEY"))
 
+
 # Load CNN model
 cwd = os.getcwd()
-model_path = os.path.join(cwd, "model", "cnn_model.pth")
+model_path = os.path.join(cwd,"CNN-model-created", "model", "cnn_model.pth")
 class_name = {
     0: 'Tomato_Early_blight', 1: 'Tomato_Septoria_leaf_spot', 2: 'Tomato_healthy',
     3: 'Pepper__bell___Bacterial_spot', 4: 'Tomato_Spider_mites_Two_spotted_spider_mite',
@@ -35,7 +36,7 @@ def translate_solution(text, language):
 # Get disease solution from LLM
 def get_disease_solution(disease_name, language):
     prompt = f"I detected a plant disease named '{disease_name}'. Please suggest a suitable organic or chemical treatment, prevention tips, and fertilizers."
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    model = genai.GenerativeModel("gemini-flash-latest")
     response = model.generate_content(prompt)
     solution = response.text.strip()
     return translate_solution(solution, language)
@@ -48,6 +49,39 @@ def classify_image(image, language):
     label, output_path = classifier.predict(image_path=image_path)
     solution = get_disease_solution(label, language)
     return label, Image.open(output_path), solution
+
+import requests
+
+def get_fertilizer(temperature, humidity, moisture, crop_type, soil_type, nitrogen, phosphorous, potassium):
+    try:
+        url = "http://127.0.0.1:8000/prediction"  # Ensure FastAPI is running
+        data = {
+            "temperature": temperature,
+            "humidity": humidity,
+            "moisture": moisture,
+            "crop_type": crop_type,
+            "soil_type": soil_type,
+            "nitrogen": nitrogen,
+            "phosphorous": phosphorous,
+            "potassium": potassium
+        }
+
+        # Send as form-data (not JSON)
+        response = requests.post(url, data=data)
+
+        if response.status_code == 200:
+            result = response.json()
+            return (
+                f"🌾 Recommended Fertilizer: {result.get('prediction', 'Unknown')}\n\n"
+                f"📘 How to Use:\n{result.get('rag_steps', 'No info available.')}"
+            )
+        else:
+            return f"❌ API Error: {response.text}"
+
+    except Exception as e:
+        return f"⚠️ Error connecting to FastAPI: {str(e)}"
+
+
 
 # UI
 with gr.Blocks(theme=gr.themes.Soft()) as demo:
@@ -78,7 +112,32 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
     )
 
     submit_btn.click(fn=classify_image, inputs=[image_input, lang_choice], outputs=[prediction_text, output_image, solution_box])
+    
+    gr.Markdown("## 🌿 Fertilizer Recommendation System")
+    gr.Markdown("Enter the details below to get the best fertilizer suggestion:")
 
-# Run
+    with gr.Row():
+        with gr.Column():
+            temp = gr.Number(label="🌡️ Temperature (°C)")
+            hum = gr.Number(label="💧 Humidity (%)")
+            moist = gr.Number(label="🌾 Moisture (%)")
+            crop = gr.Textbox(label="🌱 Crop Type")
+            soil = gr.Textbox(label="🌍 Soil Type")
+            nitro = gr.Number(label="🧪 Nitrogen")
+            phos = gr.Number(label="🧬 Phosphorous")
+            pota = gr.Number(label="⚗️ Potassium")
+
+            submit_btn = gr.Button("🔍 Get Fertilizer Suggestion", variant="primary")
+
+        with gr.Column():
+            output = gr.Textbox(label="Result", lines=8, interactive=False)
+
+    submit_btn.click(
+        fn=get_fertilizer,
+        inputs=[temp, hum, moist, crop, soil, nitro, phos, pota],
+        outputs=output
+    )
+
+
 if __name__ == "__main__":
     demo.launch()
