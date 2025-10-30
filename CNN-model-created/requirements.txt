@@ -29,3 +29,7 @@ Pillow
 gradio
 torch
 torchvision
+fastapi
+uvicorn
+google-generativeai
+deep-translator
