@@ -1,19 +1,28 @@
-import gradio as gr
+from fastapi import FastAPI, UploadFile, Form
+from fastapi.responses import JSONResponse
 import os
-from core.predict import ImageClassifier
 from PIL import Image
+from io import BytesIO
+from core.predict import ImageClassifier
 from dotenv import load_dotenv
 import google.generativeai as genai
 from deep_translator import GoogleTranslator
+import uvicorn
 
-# Load environment variables
+# --- Setup ---
 load_dotenv()
 genai.configure(api_key=os.getenv("GENAI_API_KEY"))
 
+app = FastAPI(
+    title="🌿 Plant Health AI Assistant API",
+    description="Detects plant diseases and suggests treatments using CNN + Gemini AI.",
+    version="1.0.0"
+)
 
-# Load CNN model
+# --- Load CNN model ---
 cwd = os.getcwd()
-model_path = os.path.join(cwd,"CNN-model-created", "model", "cnn_model.pth")
+model_path = os.path.join(cwd, "model", "cnn_model.pth")
+
 class_name = {
     0: 'Tomato_Early_blight', 1: 'Tomato_Septoria_leaf_spot', 2: 'Tomato_healthy',
     3: 'Pepper__bell___Bacterial_spot', 4: 'Tomato_Spider_mites_Two_spotted_spider_mite',
@@ -25,119 +34,84 @@ class_name = {
     18: 'Tomato__Target_Spot', 19: 'Potato___healthy', 20: 'Tomato_Bacterial_spot',
     21: 'Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot', 22: 'Tomato__Tomato_mosaic_virus'
 }
+
 classifier = ImageClassifier(model_path=model_path, class_name=class_name)
 
-# Translate if user selected Hindi
-def translate_solution(text, language):
-    if language == "Hindi":
+
+# --- Helpers ---
+def translate_solution(text, language: str):
+    """Translate the solution text if Hindi selected."""
+    if language.lower() == "hindi":
         return GoogleTranslator(source='auto', target='hi').translate(text)
     return text
 
-# Get disease solution from LLM
-def get_disease_solution(disease_name, language):
-    prompt = f"I detected a plant disease named '{disease_name}'. Please suggest a suitable organic or chemical treatment, prevention tips, and fertilizers."
+
+def get_disease_solution(disease_name: str, language: str):
+    """Use Gemini AI to get treatment solution."""
+    prompt = f"I detected a plant disease named '{disease_name}'. Suggest a suitable organic or chemical treatment, prevention tips, and fertilizers."
     model = genai.GenerativeModel("gemini-flash-latest")
     response = model.generate_content(prompt)
     solution = response.text.strip()
     return translate_solution(solution, language)
 
-# Main prediction pipeline
-def classify_image(image, language):
-    image_path = "uploaded_image.jpg"
-    image.save(image_path)
 
-    label, output_path = classifier.predict(image_path=image_path)
-    solution = get_disease_solution(label, language)
-    return label, Image.open(output_path), solution
-
-import requests
-
-def get_fertilizer(temperature, humidity, moisture, crop_type, soil_type, nitrogen, phosphorous, potassium):
+# --- API Endpoint ---
+@app.post("/classify_image")
+async def classify_image(image: UploadFile, language: str = Form("English")):
+    """
+    Upload a plant leaf image and get:
+    - Disease name
+    - Marked image path
+    - AI-based treatment suggestion
+    """
     try:
-        url = "http://127.0.0.1:8000/prediction"  # Ensure FastAPI is running
-        data = {
-            "temperature": temperature,
-            "humidity": humidity,
-            "moisture": moisture,
-            "crop_type": crop_type,
-            "soil_type": soil_type,
-            "nitrogen": nitrogen,
-            "phosphorous": phosphorous,
-            "potassium": potassium
-        }
+        # Read image
+        contents = await image.read()
+        pil_image = Image.open(BytesIO(contents))
+        image_path = "uploaded_image.jpg"
+        pil_image.save(image_path)
 
-        # Send as form-data (not JSON)
-        response = requests.post(url, data=data)
+        # Predict using CNN
+        label, output_path = classifier.predict(image_path=image_path)
 
-        if response.status_code == 200:
-            result = response.json()
-            return (
-                f"🌾 Recommended Fertilizer: {result.get('prediction', 'Unknown')}\n\n"
-                f"📘 How to Use:\n{result.get('rag_steps', 'No info available.')}"
-            )
-        else:
-            return f"❌ API Error: {response.text}"
+        # Get AI solution
+        solution = get_disease_solution(label, language)
 
+        # Response
+        return JSONResponse({
+            "disease": label,
+            "solution": solution,
+            "marked_image": output_path
+        })
     except Exception as e:
-        return f"⚠️ Error connecting to FastAPI: {str(e)}"
+        return JSONResponse({"error": str(e)}, status_code=500)
 
 
-
-# UI
-with gr.Blocks(theme=gr.themes.Soft()) as demo:
-    gr.Image(value="https://cdn-icons-png.flaticon.com/512/2917/2917999.png", width=100)
-    gr.Markdown(
-        """
-        # 🌿 Plant Health AI Assistant  
-        Upload a plant leaf to detect diseases and receive expert treatment powered by Generative AI.
-        """, elem_id="title"
-    )
-
-    with gr.Row():
-        with gr.Column(scale=1):
-            image_input = gr.Image(type="pil", label="📷 Upload Plant Leaf Image")
-            lang_choice = gr.Radio(["English", "Hindi"], label="🌐 Output Language", value="English")
-            submit_btn = gr.Button("🩺 Diagnose & Suggest Treatment", variant="primary")
-
-        with gr.Column(scale=1):
-            prediction_text = gr.Textbox(label="🦠 Detected Disease", interactive=False, show_copy_button=True)
-            output_image = gr.Image(label="📍 Marked Disease Image")
-            with gr.Accordion("💡 AI Doctor's Treatment Plan", open=True):
-                solution_box = gr.Textbox(lines=12, label="Suggested Cure", interactive=False, show_copy_button=True)
-
-    gr.Examples(
-        examples=["sample_leaf.jpg"],
-        inputs=[image_input],
-        label="📁 Try with Example Image"
-    )
-
-    submit_btn.click(fn=classify_image, inputs=[image_input, lang_choice], outputs=[prediction_text, output_image, solution_box])
-    
-    gr.Markdown("## 🌿 Fertilizer Recommendation System")
-    gr.Markdown("Enter the details below to get the best fertilizer suggestion:")
-
-    with gr.Row():
-        with gr.Column():
-            temp = gr.Number(label="🌡️ Temperature (°C)")
-            hum = gr.Number(label="💧 Humidity (%)")
-            moist = gr.Number(label="🌾 Moisture (%)")
-            crop = gr.Textbox(label="🌱 Crop Type")
-            soil = gr.Textbox(label="🌍 Soil Type")
-            nitro = gr.Number(label="🧪 Nitrogen")
-            phos = gr.Number(label="🧬 Phosphorous")
-            pota = gr.Number(label="⚗️ Potassium")
-
-            submit_btn = gr.Button("🔍 Get Fertilizer Suggestion", variant="primary")
-
-        with gr.Column():
-            output = gr.Textbox(label="Result", lines=8, interactive=False)
-
-    submit_btn.click(
-        fn=get_fertilizer,
-        inputs=[temp, hum, moist, crop, soil, nitro, phos, pota],
-        outputs=output
-    )
+# --- Optional: Fertilizer API ---
+# from pydantic import BaseModel
+# import requests
+#
+# class FertilizerInput(BaseModel):
+#     temperature: float
+#     humidity: float
+#     moisture: float
+#     crop_type: str
+#     soil_type: str
+#     nitrogen: float
+#     phosphorous: float
+#     potassium: float
+#
+# @app.post("/fertilizer")
+# async def get_fertilizer(data: FertilizerInput):
+#     """Forward request to fertilizer FastAPI (if running separately)."""
+#     try:
+#         url = "http://127.0.0.1:8000/prediction"
+#         response = requests.post(url, data=data.dict())
+#         return response.json()
+#     except Exception as e:
+#         return {"error": str(e)}
 
 
+# --- Run ---
 if __name__ == "__main__":
-    demo.launch()
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
