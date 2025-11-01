@@ -1,5 +1,6 @@
 from fastapi import FastAPI, UploadFile, Form
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 import os
 from PIL import Image
 from io import BytesIO
@@ -17,6 +18,15 @@ app = FastAPI(
     title="🌿 Plant Health AI Assistant API",
     description="Detects plant diseases and suggests treatments using CNN + Gemini AI.",
     version="1.0.0"
+)
+
+# ✅ Enable CORS (for React frontend or Render)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # or specify: ["http://localhost:5173", "https://your-frontend.onrender.com"]
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # --- Load CNN model ---
@@ -105,7 +115,7 @@ async def classify_image(image: UploadFile, language: str = Form("English")):
 # async def get_fertilizer(data: FertilizerInput):
 #     """Forward request to fertilizer FastAPI (if running separately)."""
 #     try:
-#         url = "http://127.0.0.1:8000/prediction"
+#         url = "https://your-fertilizer-api.onrender.com/prediction"  # Update with deployed link
 #         response = requests.post(url, data=data.dict())
 #         return response.json()
 #     except Exception as e:
@@ -114,4 +124,5 @@ async def classify_image(image: UploadFile, language: str = Form("English")):
 
 # --- Run ---
 if __name__ == "__main__":
-    uvicorn.run("app:app", host="0.0.0.0", port=10000)
+    port = int(os.environ.get("PORT", 10000))
+    uvicorn.run("app:app", host="0.0.0.0", port=port)
