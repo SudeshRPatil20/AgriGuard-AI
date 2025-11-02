@@ -1,8 +1,17 @@
 # 🌿 Plant Disease Classification Using CNN
 
-This project uses deep learning to classify plant diseases from leaf images. It is built with a Convolutional Neural Network (CNN) for model training and Streamlit for interactive web-based predictions.
+This project uses **Deep Learning** to classify **plant diseases** from leaf images using a **Convolutional Neural Network (CNN)** for model training and **Streamlit** for interactive web-based predictions.
 
 ---
+
+## 🔗 APIs & Resources
+
+- 🌾 **Fertilizer Prediction API:** [https://agriguard-ai-1.onrender.com/docs](https://agriguard-ai-1.onrender.com/docs)  
+- 🍃 **Plant Disease Detection with RAG Information:** [https://agriguard-ai-nckd.onrender.com/docs](https://agriguard-ai-nckd.onrender.com/docs)  
+- 🧠 **Fine-tuned 1-to-1 QnA Model:** [https://www.kaggle.com/code/sudeshrpatil/model-finetuning](https://www.kaggle.com/code/sudeshrpatil/model-finetuning)
+
+---
+
 
 ## 📌 Overview
 
