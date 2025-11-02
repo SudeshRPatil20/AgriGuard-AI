@@ -12,7 +12,7 @@ export default function FertilizerPrediction() {
     crop_type: '',
     soil_type: '',
     nitrogen: '',
-    phosphorus: '',
+    phosphorous: '',
     potassium: '',
   });
 
@@ -148,7 +148,7 @@ export default function FertilizerPrediction() {
                 </select>
               </div>
 
-              {['nitrogen', 'phosphorus', 'potassium'].map((nutrient) => (
+              {['nitrogen', 'phosphorous', 'potassium'].map((nutrient) => (
                 <div key={nutrient}>
                   <label className="block text-sm font-semibold text-gray-700 mb-2 capitalize">
                     {nutrient} ({nutrient[0].toUpperCase()})
