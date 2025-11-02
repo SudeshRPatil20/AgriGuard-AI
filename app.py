@@ -1,25 +1,15 @@
 from fastapi import FastAPI, Form
-from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 from src.pipeline.prediction_pipeline import CustomData, PredictPipeline
 
-# Create FastAPI app
 app = FastAPI(title="Fertilizer Prediction API")
 
-# ✅ Enable CORS for frontend (React)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # or ["http://localhost:5173", "https://your-frontend.onrender.com"]
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# ✅ Root endpoint
+# Root endpoint
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the Fertilizer Prediction API"}
 
-# ✅ Prediction endpoint
+# Prediction endpoint
 @app.post("/prediction")
 def predict_datapoint(
     temperature: float = Form(...),
@@ -32,7 +22,6 @@ def predict_datapoint(
     potassium: float = Form(...)
 ):
     try:
-        # Prepare input
         data = CustomData(
             Temperature=temperature,
             Humidity=humidity,
@@ -44,10 +33,7 @@ def predict_datapoint(
             Potassium=potassium
         )
 
-        # Convert to DataFrame
         pref_df = data.get_data_as_data_frame()
-
-        # Run pipeline
         predict_pipeline = PredictPipeline()
         results = predict_pipeline.predict(pref_df)
         steps = predict_pipeline.rag_predict()
@@ -60,7 +46,7 @@ def predict_datapoint(
     except Exception as e:
         return {"error": str(e)}
 
-# ✅ RAG Info endpoint
+# RAG info endpoint
 @app.get("/rag_info")
 def rag_info():
     try:
@@ -70,7 +56,6 @@ def rag_info():
     except Exception as e:
         return {"error": str(e)}
 
-# ✅ Entry point
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8002, reload=True)
+# if __name__ == "__main__":
+#     import uvicorn
+#     uvicorn.run(app, host="0.0.0.0", port=8002, reload=True)
