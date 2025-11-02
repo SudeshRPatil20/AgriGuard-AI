@@ -1,0 +1,21 @@
+Temparature,Humidity,Moisture,Soil_Type,Crop_Type,Nitrogen,Potassium,Phosphorous,Fertilizer_Name,soil_health_score
+34,65,64,Black,Cotton,24,0,20,28-28,33.900000000000006
+27,54,30,Clayey,Pulses,13,0,13,20-20,21.35
+30,60,27,Red,Tobacco,4,17,17,10-26-26,23.3
+28,54,65,Black,Cotton,39,0,0,Urea,31.8
+36,60,43,Sandy,Millets,15,0,41,DAP,30.949999999999996
+31,62,44,Sandy,Barley,21,0,28,28-28,29.6
+27,53,35,Black,Oil seeds,37,0,0,Urea,25.1
+32,62,34,Red,Tobacco,22,0,24,28-28,27.400000000000006
+27,54,28,Clayey,Pulses,13,0,40,DAP,25.000000000000004
+26,52,38,Sandy,Maize,37,0,0,Urea,25.4
+30,60,27,Loamy,Sugarcane,12,0,40,DAP,25.799999999999997
+30,60,47,Sandy,Maize,22,0,21,28-28,28.949999999999996
+29,58,43,Clayey,Paddy,24,0,18,28-28,27.700000000000003
+30,60,63,Red,Cotton,9,9,29,14-35-14,32.1
+35,67,42,Sandy,Barley,10,0,35,DAP,29.35
+28,54,46,Clayey,Paddy,35,0,0,Urea,27.200000000000003
+35,68,33,Red,Tobacco,11,0,37,DAP,28.150000000000002
+25,50,65,Loamy,Cotton,36,0,0,Urea,30.2
+36,68,50,Loamy,Wheat,12,18,19,10-26-26,31.95
+27,53,34,Black,Oil seeds,42,0,0,Urea,25.9
