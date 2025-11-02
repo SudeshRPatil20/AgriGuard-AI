@@ -19,6 +19,7 @@ Pillow
 gradio
 torch
 torchvision
+sentence-transformers
 # catboost
 # shutil
 dill
