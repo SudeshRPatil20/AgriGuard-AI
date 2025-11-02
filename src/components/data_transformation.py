@@ -24,7 +24,7 @@ from dataclasses import dataclass
 @dataclass
 class DataTransformationConfig:
     preprocessor_obj_file_path = os.path.join('artifact', "preprocessor.pkl")
-    rag_obj_file_path = os.path.join('artifact', 'vecorstore')
+    rag_obj_file_path = os.path.join('artifact', 'vectorstore')
 class DataTransformation:
     def __init__(self):
         self.data_transformation_config = DataTransformationConfig()
